@@ -7,7 +7,6 @@ app = FastAPI()
 # Persistent storage path in GKE
 PERSISTENT_STORAGE_PATH = "/het_PV_dir"
 
-# Ensure the persistent storage directory exists
 os.makedirs(PERSISTENT_STORAGE_PATH, exist_ok=True)
 
 CONTAINER2_URL = "http://container2-service:8000/compute"  # Kubernetes Service name
@@ -24,8 +23,8 @@ async def store_file(data: dict):
         with open(file_path, "w") as f:
             f.write(data["data"])
         return {"file": data["file"], "message": "Success."}
-    except Exception:
-        return {"file": data["file"], "error": "Error while storing the file to the storage."}
+    except Exception as e:
+        return {"file": data["file"], "error": str(e)}
 
 @app.post("/calculate")
 async def calculate(data: dict):
@@ -35,23 +34,19 @@ async def calculate(data: dict):
 
     file_path = os.path.join(PERSISTENT_STORAGE_PATH, data["file"])
 
-    # Check if file exists in persistent volume
     if not os.path.exists(file_path):
         return {"file": data["file"], "error": "File not found."}
 
-    # Forward request to Container 2
     try:
-        response = requests.post(
-            CONTAINER2_URL,
-            json={"file": data["file"], "product": data.get("product", "")},
-            timeout=10
-        )
+        response = requests.post(CONTAINER2_URL, json={"file": data["file"], "product": data.get("product", "")}, timeout=10)
+        response.raise_for_status()  # Ensures proper status code handling
         return response.json()
-
     except requests.exceptions.ConnectionError:
         raise HTTPException(status_code=500, detail="Container2 unavailable")
     except requests.exceptions.Timeout:
         raise HTTPException(status_code=504, detail="Container2 timeout")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Container2 Error: {str(e)}")
 
 if __name__ == '__main__':
     import uvicorn
