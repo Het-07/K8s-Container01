@@ -1,5 +1,5 @@
 steps:
-  # Step 1: Build Docker Image for Container 1
+  # Step 1: Build Docker Image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/b00988337-w25-k8s/container1', '.']
 
@@ -9,7 +9,7 @@ steps:
 
   # Step 3: Deploy Container 1 to GKE
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/hetpatel.yaml']
+    args: ['apply', '-f', '/workspace/c1.yaml']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=k8s-cluster'

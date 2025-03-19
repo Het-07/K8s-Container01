@@ -1,0 +1,42 @@
+# Deployment for Container 1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: container1-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: container1
+  template:
+    metadata:
+      labels:
+        app: container1
+    spec:
+      containers:
+        - name: container1
+          image: gcr.io/b00988337-w25-k8s/container1:latest
+          ports:
+            - containerPort: 6000
+          volumeMounts:
+            - name: storage
+              mountPath: /het_PV_dir
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: container-storage-pvc
+
+---
+# Service for Container 1 (External Load Balancer)
+apiVersion: v1
+kind: Service
+metadata:
+  name: container1-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: container1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 6000
