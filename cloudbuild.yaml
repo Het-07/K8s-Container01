@@ -1,15 +1,15 @@
 steps:
   # Step 1: Build Docker Image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/b00988337-w25-k8s/container1', '.']
+    args: ['build', '-t', 'gcr.io/csci-5409-k8s-b00988337/container1', '.']
 
   # Step 2: Push Docker Image to Google Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/b00988337-w25-k8s/container1']
+    args: ['push', 'gcr.io/csci-5409-k8s-b00988337/container1']
 
   # Step 3: Deploy Container 1 to GKE
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/c1.yaml']
+    args: ['apply', '-f', 'c1.yaml']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=k8s-cluster'

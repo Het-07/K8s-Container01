@@ -1,4 +1,3 @@
-# Deployment for Container 1
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,7 +14,7 @@ spec:
     spec:
       containers:
         - name: container1
-          image: gcr.io/b00988337-w25-k8s/container1:latest
+          image: gcr.io/csci-5409-k8s-b00988337/container1:latest
           ports:
             - containerPort: 6000
           volumeMounts:
@@ -27,7 +26,7 @@ spec:
             claimName: container-storage-pvc
 
 ---
-# Service for Container 1 (External Load Balancer)
+
 apiVersion: v1
 kind: Service
 metadata:
