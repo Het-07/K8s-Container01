@@ -47,6 +47,6 @@ async def calculate(data: dict):
         })
         return response.json()
     except requests.exceptions.RequestException:
-        raise HTTPException(status_code=500, detail="Container 2 unreachable")
+        raise HTTPException(status_code=500, detail="Container-02 unreachable")
 
 
