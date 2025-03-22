@@ -1,11 +1,10 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 import os
 import requests
 
 app = FastAPI()
 PERSISTENT_STORAGE_PATH = "/het_PV_dir"
-os.makedirs(PERSISTENT_STORAGE_PATH, exist_ok=True)
 
 CONTAINER2_URL = "http://container2-service:8000/compute"
 
@@ -24,7 +23,7 @@ async def store_file(request: Request):
         try:
             with open(file_path, "w") as f:
                 f.write(filedata)
-            return {"file": filename, "message": "Success."}
+            return {"file": filename, "message": "Success."} 
         except:
             return {"file": filename, "error": "Error while storing the file to the storage."}
 
@@ -33,25 +32,20 @@ async def store_file(request: Request):
 
 
 @app.post("/calculate")
-async def calculate(request: Request):
+def calculate(data: dict):
+    if "file" not in data or not data["file"] or "product" not in data or not data["product"]:
+        return {"file": None, "error": "Invalid JSON input."}
+
+    file_path = os.path.join(PERSISTENT_STORAGE_PATH, data["file"])
+
+    if not os.path.exists(file_path):
+        return {"file": data["file"], "error": "File not found."}
+
     try:
-        data = await request.json()
-        filename = data.get("file")
-        product = data.get("product")
-
-        if not filename:
-            return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
-
-        file_path = os.path.join(PERSISTENT_STORAGE_PATH, filename)
-        if not os.path.exists(file_path):
-            return {"file": filename, "error": "File not found."}
-
-        try:
-            # Send to container 2 for processing
-            response = requests.post(CONTAINER2_URL, json={"file": filename, "product": product})
-            return response.json()
-        except:
-            return {"file": filename, "error": "Error contacting container 2."}
-
-    except:
-        return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
+        response = requests.post(CONTAINER2_URL, json={
+            "file": data["file"],
+            "product": data["product"]
+        })
+        return response.json()
+    except requests.exceptions.RequestException:
+        return {"file": data["file"], "error": "Container 2 unreachable"}
