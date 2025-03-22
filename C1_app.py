@@ -22,7 +22,8 @@ async def store_file(data: dict):
 
 @app.post("/calculate")
 async def calculate(data: dict):
-    if "file" not in data:
+    file = data.get("file")
+    if not file:
         return {"file": None, "error": "Invalid JSON input."}
     file_path = os.path.join(PERSISTENT_STORAGE_PATH, data["file"])
     if not os.path.exists(file_path):
