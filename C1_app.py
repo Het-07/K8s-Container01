@@ -22,28 +22,31 @@ async def store_file(data: dict):
 
 @app.post("/calculate")
 async def calculate(data: dict):
-    try:
-        file_value = data.get("file")
-
-        if not file_value or not isinstance(file_value, str) or file_value.strip() == "":
-            return {"file": None, "error": "Invalid JSON input."}
-
-        file_path = os.path.join(PERSISTENT_STORAGE_PATH, file_value)
-
-        if not os.path.exists(file_path):
-            return {"file": file_value, "error": "File not found."}
-
-        try:
-            response = requests.post(CONTAINER2_URL, json={
-                "file": file_value,
-                "product": data.get("product", "")
-            })
-            
-            return response.json()
-        except requests.exceptions.RequestException:
-            return {"file": file_value, "error": "Input file not in CSV format."}
-
-    except Exception as e:
+    if "file" not in data:
         return {"file": None, "error": "Invalid JSON input."}
+
+    file_path = os.path.join(PERSISTENT_STORAGE_PATH, data["file"])
+
+    if not os.path.exists(file_path):
+        return {"file": data["file"], "error": "File not found."}
+
+    try:
+        with open(file_path, "r") as f:
+            reader = csv.reader(f)
+            headers = next(reader)
+            headers = [h.strip().lower() for h in headers]
+            if "product" not in headers or "amount" not in headers:
+                return {"file": data["file"], "error": "Input file not in CSV format."}
+    except:
+        return {"file": data["file"], "error": "Input file not in CSV format."}
+
+    try:
+        response = requests.post(CONTAINER2_URL, json={
+            "file": data["file"],
+            "product": data.get("product", "")
+        })
+        return response.json()
+    except requests.exceptions.RequestException:
+        raise HTTPException(status_code=500, detail="Container 2 unreachable")
 
 
