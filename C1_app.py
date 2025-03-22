@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import os
 import requests
@@ -13,7 +13,7 @@ async def store_file(request: Request):
     try:
         data = await request.json()
         filename = data.get("file")
-        filedata = data.get("data")
+        content = data.get("data")
 
         if not filename:
             return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
@@ -22,8 +22,8 @@ async def store_file(request: Request):
 
         try:
             with open(file_path, "w") as f:
-                f.write(filedata)
-            return {"file": filename, "message": "Success."} 
+                f.write(content)
+            return {"file": filename, "message": "Success."}
         except:
             return {"file": filename, "error": "Error while storing the file to the storage."}
 
@@ -32,20 +32,24 @@ async def store_file(request: Request):
 
 
 @app.post("/calculate")
-def calculate(data: dict):
-    if "file" not in data or not data["file"] or "product" not in data or not data["product"]:
-        return {"file": None, "error": "Invalid JSON input."}
-
-    file_path = os.path.join(PERSISTENT_STORAGE_PATH, data["file"])
-
-    if not os.path.exists(file_path):
-        return {"file": data["file"], "error": "File not found."}
-
+async def calculate(request: Request):
     try:
-        response = requests.post(CONTAINER2_URL, json={
-            "file": data["file"],
-            "product": data["product"]
-        })
-        return response.json()
-    except requests.exceptions.RequestException:
-        return {"file": data["file"], "error": "Container 2 unreachable"}
+        data = await request.json()
+        filename = data.get("file")
+        product = data.get("product")
+
+        if not filename or not product:
+            return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
+
+        file_path = os.path.join(PERSISTENT_STORAGE_PATH, filename)
+        if not os.path.exists(file_path):
+            return JSONResponse(status_code=404, content={"file": filename, "error": "File not found."})
+
+        try:
+            response = requests.post(CONTAINER2_URL, json={"file": filename, "product": product})
+            return JSONResponse(status_code=response.status_code, content=response.json())
+        except:
+            return JSONResponse(status_code=500, content={"file": filename, "error": "Container 2 unreachable"})
+
+    except:
+        return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
