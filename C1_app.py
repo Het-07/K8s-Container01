@@ -19,7 +19,6 @@ async def store_file(request: Request):
             return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
 
         file_path = os.path.join(PERSISTENT_STORAGE_PATH, filename)
-
         try:
             with open(file_path, "w") as f:
                 f.write(content)
@@ -29,7 +28,6 @@ async def store_file(request: Request):
 
     except:
         return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
-
 
 @app.post("/calculate")
 async def calculate(request: Request):
@@ -48,7 +46,7 @@ async def calculate(request: Request):
         try:
             response = requests.post(CONTAINER2_URL, json={"file": filename, "product": product})
             return JSONResponse(status_code=response.status_code, content=response.json())
-        except:
+        except requests.exceptions.RequestException:
             return JSONResponse(status_code=500, content={"file": filename, "error": "Container 2 unreachable"})
 
     except:
