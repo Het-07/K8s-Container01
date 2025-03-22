@@ -22,14 +22,19 @@ async def store_file(data: dict):
 
 @app.post("/calculate")
 async def calculate(data: dict):
-    file = data.get("file")
-    if not file:
+    file_value = data.get("file")
+
+    if file_value is None or not isinstance(file_value, str) or file_value.strip() == "":
         return {"file": None, "error": "Invalid JSON input."}
-    file_path = os.path.join(PERSISTENT_STORAGE_PATH, data["file"])
+
+    file_path = os.path.join(PERSISTENT_STORAGE_PATH, file_value)
+
     if not os.path.exists(file_path):
-        return {"file": data["file"], "error": "File not found."}
+        return {"file": file_value, "error": "File not found."}
+
     try:
-        response = requests.post(CONTAINER2_URL, json={"file": data["file"], "product": data.get("product", "")})
+        response = requests.post(CONTAINER2_URL, json={"file": file_value, "product": data.get("product", "")})
         return response.json()
     except requests.exceptions.RequestException:
         raise HTTPException(status_code=500, detail="Container 2 unreachable")
+
