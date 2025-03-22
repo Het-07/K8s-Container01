@@ -16,6 +16,7 @@ spec:
       containers:
         - name: container1
           image: us-central1-docker.pkg.dev/csci-5409-k8s-b00988337/container-01/container1:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 6000
           volumeMounts:
