@@ -16,17 +16,17 @@ async def store_file(data: dict):
     try:
         with open(file_path, "w") as f:
             f.write(data["data"])
-        return {"file": data["file"], "message": "Success"}
+        return {"file": data["file"], "message": "Success."}
     except:
-        return {"file": data["file"], "error": "Write error"}
+        return {"file": data["file"], "error": "Error while storing the file to the storage."}
 
 @app.post("/calculate")
 async def calculate(data: dict):
     if "file" not in data:
-        return {"file": None, "error": "Filename missing"}
+        return {"file": None, "error": "Invalid JSON input."}
     file_path = os.path.join(PERSISTENT_STORAGE_PATH, data["file"])
     if not os.path.exists(file_path):
-        return {"file": data["file"], "error": "File not found"}
+        return {"file": data["file"], "error": "File not found."}
     try:
         response = requests.post(CONTAINER2_URL, json={"file": data["file"], "product": data.get("product", "")})
         return response.json()
