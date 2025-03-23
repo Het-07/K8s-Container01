@@ -40,14 +40,17 @@ async def calculate(request: Request):
             return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
 
         file_path = os.path.join(PERSISTENT_STORAGE_PATH, filename)
+
         if not os.path.exists(file_path):
             return JSONResponse(status_code=404, content={"file": filename, "error": "File not found."})
 
         try:
             response = requests.post(CONTAINER2_URL, json={"file": filename, "product": product})
+            response.raise_for_status()
             return JSONResponse(status_code=response.status_code, content=response.json())
-        except requests.exceptions.RequestException:
-            return JSONResponse(status_code=500, content={"file": filename, "error": "Container 2 unreachable"})
-
+        except requests.exceptions.HTTPError as err:
+            return JSONResponse(status_code=response.status_code, content=response.json())
+        except Exception:
+            return JSONResponse(status_code=500, content={"file": filename, "error": "Internal Server Error."})
     except:
         return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
