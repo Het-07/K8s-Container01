@@ -8,7 +8,6 @@ PERSISTENT_STORAGE_PATH = "/het_PV_dir"
 
 CONTAINER2_URL = "http://container2-service:8000/compute"
 
-# store-file api
 @app.post("/store-file")
 async def store_file(request: Request):
     try:
@@ -30,7 +29,6 @@ async def store_file(request: Request):
     except:
         return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
 
-# calculate api
 @app.post("/calculate")
 async def calculate(request: Request):
     try:
