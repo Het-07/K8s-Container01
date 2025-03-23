@@ -9,7 +9,7 @@ PERSISTENT_STORAGE_PATH = "/het_PV_dir"
 CONTAINER2_URL = "http://container2-service:8000/compute"
 
 # -----------------------------------------------
-
+# Endpoint to store a file in persistent volume.
 # -----------------------------------------------
 @app.post("/store-file")
 async def store_file(request: Request):
@@ -33,7 +33,7 @@ async def store_file(request: Request):
         return JSONResponse(status_code=400, content={"file": None, "error": "Invalid JSON input."})
 
 # ----------------------------------------------------------------
-
+# Endpoint to calculate total amount from file for given product.
 # ----------------------------------------------------------------
 @app.post("/calculate")
 async def calculate(request: Request):
